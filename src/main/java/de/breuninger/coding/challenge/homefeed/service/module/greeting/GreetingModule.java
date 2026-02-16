@@ -9,11 +9,11 @@ import de.breuninger.coding.challenge.homefeed.service.module.HomefeedModule;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Component
+@Service
 public class GreetingModule implements HomefeedModule {
     private static final Logger logger = LoggerFactory.getLogger(GreetingModule.class);
 
