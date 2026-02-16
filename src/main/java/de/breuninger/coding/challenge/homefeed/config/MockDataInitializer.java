@@ -63,7 +63,6 @@ public class MockDataInitializer {
         LocalDateTime now = LocalDateTime.now();
 
         BannerEntity promo1 = new BannerEntity();
-        promo1.setUserId(null);
         promo1.setTitle("Mid Season Sale");
         promo1.setMessage("Up to 30% off on selected items. Limited time offer!");
         promo1.setBannerType("PROMO");
@@ -73,11 +72,11 @@ public class MockDataInitializer {
         promo1.setPriority(10);
         promo1.setValidFrom(now.minusDays(5));
         promo1.setValidUntil(now.plusDays(25));
+        promo1.setTargetUserSegments(List.of("ALL"));
         bannerRepository.save(promo1);
 
         // VIP Exclusive Promo
         BannerEntity promoVip = new BannerEntity();
-        promoVip.setUserId(null);
         promoVip.setTitle("VIP Exclusive: Early Access");
         promoVip.setMessage("Get early access to our new collection. VIP members only!");
         promoVip.setBannerType("PROMO");
@@ -87,23 +86,10 @@ public class MockDataInitializer {
         promoVip.setPriority(15);
         promoVip.setValidFrom(now.minusDays(3));
         promoVip.setValidUntil(now.plusDays(20));
+        promoVip.setTargetUserSegments(List.of("VIP"));
         bannerRepository.save(promoVip);
 
-        BannerEntity order1 = new BannerEntity();
-        order1.setUserId("user123");
-        order1.setTitle("Your order is on the way!");
-        order1.setMessage("Your order #12345 has been shipped and will arrive tomorrow.");
-        order1.setBannerType("ORDER_UPDATE");
-        order1.setIconUrl("https://example.com/icons/package.png");
-        order1.setActionUrl("/orders/12345");
-        order1.setActionLabel("Track Order");
-        order1.setPriority(20);
-        order1.setValidFrom(now.minusDays(1));
-        order1.setValidUntil(now.plusDays(7));
-        bannerRepository.save(order1);
-
         BannerEntity info1 = new BannerEntity();
-        info1.setUserId(null);
         info1.setTitle("New Features Available");
         info1.setMessage("Check out our improved search and filtering options!");
         info1.setBannerType("INFO");
@@ -113,20 +99,8 @@ public class MockDataInitializer {
         info1.setPriority(5);
         info1.setValidFrom(now.minusDays(2));
         info1.setValidUntil(now.plusDays(30));
+        info1.setTargetUserSegments(List.of("ALL"));
         bannerRepository.save(info1);
-
-        BannerEntity warning1 = new BannerEntity();
-        warning1.setUserId("user123");
-        warning1.setTitle("Items in your wishlist are running low");
-        warning1.setMessage("The Summer Dress Collection you liked is almost sold out!");
-        warning1.setBannerType("WARNING");
-        warning1.setIconUrl("https://example.com/icons/warning.png");
-        warning1.setActionUrl("/wishlist");
-        warning1.setActionLabel("View Wishlist");
-        warning1.setPriority(12);
-        warning1.setValidFrom(now.minusDays(1));
-        warning1.setValidUntil(now.plusDays(14));
-        bannerRepository.save(warning1);
     }
 
     private void initHighlights(HighlightRepository highlightRepository) {

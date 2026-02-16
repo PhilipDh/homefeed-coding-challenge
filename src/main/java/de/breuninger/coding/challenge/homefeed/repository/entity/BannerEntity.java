@@ -5,10 +5,9 @@ import java.util.List;
 
 public class BannerEntity {
     private Long id;
-    private String userId;
     private String title;
     private String message;
-    private String bannerType;  // e.g., "INFO", "WARNING", "PROMO", "ORDER_UPDATE" TODO maybe make an enum
+    private String bannerType;  // e.g., "INFO", "WARNING", "PROMO", TODO maybe make an enum
 
     private String iconUrl;
     private String imageUrl;
@@ -28,14 +27,6 @@ public class BannerEntity {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
 
     public String getTitle() {
