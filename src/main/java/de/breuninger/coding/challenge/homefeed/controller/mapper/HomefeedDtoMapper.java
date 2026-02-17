@@ -1,13 +1,7 @@
 package de.breuninger.coding.challenge.homefeed.controller.mapper;
 
-import de.breuninger.coding.challenge.homefeed.eto.BannerModuleEto;
-import de.breuninger.coding.challenge.homefeed.eto.GreetingModuleEto;
-import de.breuninger.coding.challenge.homefeed.eto.HomefeedModuleEto;
-import de.breuninger.coding.challenge.homefeed.eto.HomefeedModuleGroupEto;
-import de.breuninger.coding.challenge.homefeed.service.module.BannerEntry;
-import de.breuninger.coding.challenge.homefeed.service.module.GreetingEntry;
-import de.breuninger.coding.challenge.homefeed.service.module.HomefeedEntry;
-import de.breuninger.coding.challenge.homefeed.service.module.HomefeedModuleGroup;
+import de.breuninger.coding.challenge.homefeed.eto.*;
+import de.breuninger.coding.challenge.homefeed.service.module.*;
 
 import java.util.List;
 
@@ -29,6 +23,7 @@ public class HomefeedDtoMapper {
         return switch (entry) {
             case GreetingEntry greetingEntry -> new GreetingModuleEto(greetingEntry.greeting());
             case BannerEntry bannerEntry -> new BannerModuleEto(bannerEntry.title(), bannerEntry.message(), bannerEntry.bannerType(), bannerEntry.imageUrl(), bannerEntry.iconName(), bannerEntry.actionUrl(), bannerEntry.actionLabel());
+            case HighlightEntry highlightEntry -> new HighlightModuleEto(highlightEntry.title(), highlightEntry.description(), highlightEntry.imageUrl());
         };
     }
 }

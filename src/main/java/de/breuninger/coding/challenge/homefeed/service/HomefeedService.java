@@ -66,7 +66,8 @@ public class HomefeedService {
                 userId,
                 user.getFirstname(),
                 user.getSurname(),
-                userSegments
+                userSegments,
+                user.getPreferredCategories()
         );
     }
 

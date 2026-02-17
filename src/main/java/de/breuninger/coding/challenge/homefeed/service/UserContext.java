@@ -7,14 +7,15 @@ public record UserContext(
         String firstname,
         String surname,
         Set<String> userSegments,
-        boolean isAnonymous
+        boolean isAnonymous,
+        Set<String> preferredCategories
 ) {
 
     public static UserContext anonymous() {
-        return new UserContext(null, null, null, Set.of("ALL"), true);
+        return new UserContext(null, null, null, Set.of("ALL"), true, Set.of());
     }
 
-    public static UserContext authenticated(String userId, String firstname, String surname, Set<String> userSegments) {
-        return new UserContext(userId, firstname, surname, userSegments, false);
+    public static UserContext authenticated(String userId, String firstname, String surname, Set<String> userSegments,  Set<String> preferredCategories) {
+        return new UserContext(userId, firstname, surname, userSegments, false, preferredCategories);
     }
 }
