@@ -1,5 +1,6 @@
 package de.breuninger.coding.challenge.homefeed.service;
 
+import de.breuninger.coding.challenge.homefeed.config.HomefeedModuleConfigurationProperties;
 import de.breuninger.coding.challenge.homefeed.repository.UserRepository;
 import de.breuninger.coding.challenge.homefeed.repository.entity.UserEntity;
 import de.breuninger.coding.challenge.homefeed.service.module.HomefeedModule;
@@ -7,51 +8,93 @@ import de.breuninger.coding.challenge.homefeed.service.module.HomefeedModuleGrou
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class HomefeedService {
     private static final Logger logger = LoggerFactory.getLogger(HomefeedService.class);
     private final List<HomefeedModule> homefeedModules;
     private final UserRepository userRepository;
+    private final ExecutorService executorService;
+    private final HomefeedModuleConfigurationProperties configProperties;
 
-    public HomefeedService(List<HomefeedModule> homefeedModules, UserRepository userRepository) {
+    public HomefeedService(List<HomefeedModule> homefeedModules,
+                          UserRepository userRepository,
+                          @Qualifier("homefeedModuleExecutor") ExecutorService executorService,
+                          HomefeedModuleConfigurationProperties configProperties) {
         this.homefeedModules = homefeedModules;
         this.userRepository = userRepository;
+        this.executorService = executorService;
+        this.configProperties = configProperties;
     }
 
     public List<HomefeedModuleGroup> getHomefeed(String userId) {
         logger.info("Processing homefeed for user {}", StringUtils.isBlank(userId) ? "anonymous" : userId);
 
         UserContext context = buildUserContext(userId);
+        long timeoutMs = configProperties.getExecutionTimeoutMs();
 
-        logger.debug("Fetching homefeed from {} modules", homefeedModules.size());
+        logger.debug("Fetching homefeed from {} modules in parallel with {}ms timeout",
+                homefeedModules.size(), timeoutMs);
 
-        List<HomefeedModuleGroup> result = homefeedModules.stream()
-                .sorted(Comparator.comparingInt(HomefeedModule::getPriority))
+        // Module data is fetched in parallel with a timeout that is configured in application properties
+        // This makes sure no homefeed request takes too long to return data.
+        // Reduces dependency on some other modules that might be overloaded or stuttering
+        List<CompletableFuture<HomefeedModuleGroup>> futures = homefeedModules.stream()
                 .map(module -> {
-                    logger.debug("Processing module: {}", module.getType());
-                    String moduleId = generateModuleId(module.getType());
-                    HomefeedModuleGroup group = new HomefeedModuleGroup(
-                            moduleId,
-                            module.getType(),
-                            module.getDisplayType(),
-                            module.getEntries(context)
-                    );
-                    if (group.entries().isEmpty()) {
-                        logger.debug("Module {} returned no entries", module.getType());
-                    }
-                    return group;
+                    String moduleType = module.getType();
+                    return CompletableFuture.supplyAsync(() -> {
+                        try {
+                            logger.debug("Processing module: {}", moduleType);
+                            String moduleId = generateModuleId(moduleType);
+                            HomefeedModuleGroup group = new HomefeedModuleGroup(
+                                    moduleId,
+                                    moduleType,
+                                    module.getDisplayType(),
+                                    module.getEntries(context)
+                            );
+                            if (group.entries().isEmpty()) {
+                                logger.debug("Module {} returned no entries", moduleType);
+                            }
+                            return group;
+                        } catch (Exception e) {
+                            logger.warn("Module {} failed with exception: {}", moduleType, e.getMessage(), e);
+                            return null;
+                        }
+                    }, executorService)
+                    .orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
+                    .exceptionally(ex -> {
+                        logger.warn("Module {} timed out or failed after {}ms", moduleType, timeoutMs);
+                        return null;
+                    });
                 })
-                .filter(group -> !group.entries().isEmpty())
                 .toList();
 
-        logger.info("Generated homefeed with {} non-empty modules", result.size());
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        List<HomefeedModuleGroup> result = futures.stream()
+                .map(CompletableFuture::join)
+                .filter(group -> group != null && !group.entries().isEmpty())
+                .sorted(Comparator.comparingInt(group ->
+                        homefeedModules.stream()
+                                .filter(m -> m.getType().equals(group.type()))
+                                .findFirst()
+                                .map(HomefeedModule::getPriority)
+                                .orElse(Integer.MAX_VALUE)
+                ))
+                .toList();
+
+        logger.info("Generated homefeed with {} non-empty modules (out of {} attempted)",
+                result.size(), homefeedModules.size());
         return result;
     }
 

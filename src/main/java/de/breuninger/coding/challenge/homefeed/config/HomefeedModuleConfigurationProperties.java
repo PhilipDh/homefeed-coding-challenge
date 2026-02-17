@@ -9,6 +9,7 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "homefeed.modules")
 public class HomefeedModuleConfigurationProperties {
     private Map<String, Integer> priorities;
+    private long executionTimeoutMs = 2000; // default 2 seconds
 
     public void setPriorities(Map<String, Integer> priorities) {
         this.priorities = priorities;
@@ -16,5 +17,13 @@ public class HomefeedModuleConfigurationProperties {
 
     public Map<String, Integer> getPriorities() {
         return priorities;
+    }
+
+    public long getExecutionTimeoutMs() {
+        return executionTimeoutMs;
+    }
+
+    public void setExecutionTimeoutMs(long executionTimeoutMs) {
+        this.executionTimeoutMs = executionTimeoutMs;
     }
 }
