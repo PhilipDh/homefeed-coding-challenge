@@ -31,14 +31,19 @@ public class HomefeedController {
     public ResponseEntity<HomefeedResponse> getHomefeed(
             @RequestHeader(value = "X-User-Id", required = false) String userId
     ) {
-        logger.info("Received request to get Homefeed for {}", StringUtils.isBlank(userId) ? "anonymous" : userId);
+        String userType = StringUtils.isBlank(userId) ? "anonymous" : userId;
+        logger.info("Received homefeed request for user: {}", userType);
+
         List<HomefeedModuleGroup> homefeedModules = homefeedService.getHomefeed(userId);
+        logger.debug("Service returned {} module groups", homefeedModules.size());
 
         List<HomefeedModuleGroupEto> modules = homefeedModules.stream()
                 .map(HomefeedDtoMapper::toGroupDto)
                 .toList();
 
         HomefeedResponse response = new HomefeedResponse(modules);
+        logger.info("Successfully generated homefeed with {} modules for user: {}", modules.size(), userType);
+
         return ResponseEntity.ok(response);
     }
 }

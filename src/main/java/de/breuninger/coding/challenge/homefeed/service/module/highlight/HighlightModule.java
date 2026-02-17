@@ -6,12 +6,16 @@ import de.breuninger.coding.challenge.homefeed.service.ModuleDisplayTypeEnum;
 import de.breuninger.coding.challenge.homefeed.service.UserContext;
 import de.breuninger.coding.challenge.homefeed.service.module.HomefeedEntry;
 import de.breuninger.coding.challenge.homefeed.service.module.HomefeedModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class HighlightModule implements HomefeedModule {
+    private static final Logger logger = LoggerFactory.getLogger(HighlightModule.class);
+
     private static final String TYPE = "highlight";
     private static final int DEFAULT_PRIORITY = 30;
 
@@ -26,7 +30,11 @@ public class HighlightModule implements HomefeedModule {
 
     @Override
     public List<HomefeedEntry> getEntries(UserContext context) {
+        logger.debug("Getting highlight entries for {} user",
+                context.isAnonymous() ? "anonymous" : "authenticated");
+
         List<HomefeedEntry> highlights = highlightService.getHighlightsForUser(context);
+        logger.debug("Retrieved {} highlight entries", highlights.size());
 
         return highlights;
     }

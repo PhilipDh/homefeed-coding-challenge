@@ -30,22 +30,29 @@ public class HomefeedService {
 
         UserContext context = buildUserContext(userId);
 
-        logger.atDebug().log("Fetching homefeed from modules: {}",
-                homefeedModules.stream().map(item -> item.getClass().getName()).toList());
+        logger.debug("Fetching homefeed from {} modules", homefeedModules.size());
 
-        return homefeedModules.stream()
+        List<HomefeedModuleGroup> result = homefeedModules.stream()
                 .sorted(Comparator.comparingInt(HomefeedModule::getPriority))
                 .map(module -> {
+                    logger.debug("Processing module: {}", module.getType());
                     String moduleId = generateModuleId(module.getType());
-                    return new HomefeedModuleGroup(
+                    HomefeedModuleGroup group = new HomefeedModuleGroup(
                             moduleId,
                             module.getType(),
                             module.getDisplayType(),
                             module.getEntries(context)
                     );
+                    if (group.entries().isEmpty()) {
+                        logger.debug("Module {} returned no entries", module.getType());
+                    }
+                    return group;
                 })
                 .filter(group -> !group.entries().isEmpty())
                 .toList();
+
+        logger.info("Generated homefeed with {} non-empty modules", result.size());
+        return result;
     }
 
     private UserContext buildUserContext(String userId) {
