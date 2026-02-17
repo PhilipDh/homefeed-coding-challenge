@@ -2,6 +2,7 @@ package de.breuninger.coding.challenge.homefeed.service.module.highlight;
 
 import de.breuninger.coding.challenge.homefeed.config.HomefeedModuleConfigurationProperties;
 import de.breuninger.coding.challenge.homefeed.service.HighlightService;
+import de.breuninger.coding.challenge.homefeed.service.ModuleDisplayTypeEnum;
 import de.breuninger.coding.challenge.homefeed.service.UserContext;
 import de.breuninger.coding.challenge.homefeed.service.module.HomefeedEntry;
 import de.breuninger.coding.challenge.homefeed.service.module.HomefeedModule;
@@ -38,5 +39,10 @@ public class HighlightModule implements HomefeedModule {
     @Override
     public int getPriority() {
         return homefeedModuleConfigProperties.getPriorities().getOrDefault(TYPE, DEFAULT_PRIORITY);
+    }
+
+    @Override
+    public ModuleDisplayTypeEnum getDisplayType() {
+        return ModuleDisplayTypeEnum.GRID;
     }
 }

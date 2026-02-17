@@ -1,6 +1,7 @@
 package de.breuninger.coding.challenge.homefeed.service.module.greeting;
 
 import de.breuninger.coding.challenge.homefeed.config.HomefeedModuleConfigurationProperties;
+import de.breuninger.coding.challenge.homefeed.service.ModuleDisplayTypeEnum;
 import de.breuninger.coding.challenge.homefeed.service.UserContext;
 import de.breuninger.coding.challenge.homefeed.service.module.GreetingEntry;
 import de.breuninger.coding.challenge.homefeed.service.module.HomefeedEntry;
@@ -46,5 +47,10 @@ public class GreetingModule implements HomefeedModule {
     @Override
     public int getPriority() {
         return homefeedModuleConfigProperties.getPriorities().getOrDefault(TYPE, DEFAULT_PRIORITY);
+    }
+
+    @Override
+    public ModuleDisplayTypeEnum getDisplayType() {
+        return ModuleDisplayTypeEnum.SINGLE;
     }
 }

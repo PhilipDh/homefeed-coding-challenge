@@ -3,6 +3,7 @@ package de.breuninger.coding.challenge.homefeed.service.module.banner;
 import de.breuninger.coding.challenge.homefeed.config.HomefeedModuleConfigurationProperties;
 import de.breuninger.coding.challenge.homefeed.repository.BannerRepository;
 import de.breuninger.coding.challenge.homefeed.repository.entity.BannerEntity;
+import de.breuninger.coding.challenge.homefeed.service.ModuleDisplayTypeEnum;
 import de.breuninger.coding.challenge.homefeed.service.UserContext;
 import de.breuninger.coding.challenge.homefeed.service.mapper.HomefeedEntryMapper;
 import de.breuninger.coding.challenge.homefeed.service.module.HomefeedEntry;
@@ -52,6 +53,11 @@ public class BannerModule implements HomefeedModule {
     @Override
     public int getPriority() {
         return homefeedModuleConfigProperties.getPriorities().getOrDefault(TYPE, DEFAULT_PRIORITY);
+    }
+
+    @Override
+    public ModuleDisplayTypeEnum getDisplayType() {
+        return ModuleDisplayTypeEnum.CAROUSEL;
     }
 
     private boolean matchesUserSegments(List<String> targetSegments, Set<String> userSegments) {

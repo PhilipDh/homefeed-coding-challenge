@@ -15,6 +15,7 @@ public class HomefeedDtoMapper {
         return new HomefeedModuleGroupEto(
                 group.id(),
                 group.type(),
+                group.displayType().getValue(),
                 items
         );
     }

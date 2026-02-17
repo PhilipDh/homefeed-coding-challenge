@@ -40,6 +40,7 @@ public class HomefeedService {
                     return new HomefeedModuleGroup(
                             moduleId,
                             module.getType(),
+                            module.getDisplayType(),
                             module.getEntries(context)
                     );
                 })
