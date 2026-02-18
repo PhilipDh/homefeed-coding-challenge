@@ -1,5 +1,6 @@
 package de.breuninger.coding.challenge.homefeed.service;
 
+import de.breuninger.coding.challenge.homefeed.config.CacheConfiguration;
 import de.breuninger.coding.challenge.homefeed.config.HomefeedModuleConfigurationProperties;
 import de.breuninger.coding.challenge.homefeed.repository.UserRepository;
 import de.breuninger.coding.challenge.homefeed.repository.entity.UserEntity;
@@ -9,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -37,6 +39,7 @@ public class HomefeedService {
         this.configProperties = configProperties;
     }
 
+    @Cacheable(value = CacheConfiguration.HOMEFEED_CACHE, unless = "#result.isEmpty()", key = "#userId ?: 'anonymous'")
     public List<HomefeedModuleGroup> getHomefeed(String userId) {
         logger.info("Processing homefeed for user {}", StringUtils.isBlank(userId) ? "anonymous" : userId);
 

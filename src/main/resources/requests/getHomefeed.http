@@ -1,3 +1,8 @@
-### GET request to example server
+### GET request with existing user
+GET http://localhost:8080/api/v1/homefeed
+X-User-Id: user123
+###
+
+### GET request with anonymous user
 GET http://localhost:8080/api/v1/homefeed
 ###
