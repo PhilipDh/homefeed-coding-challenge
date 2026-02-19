@@ -123,12 +123,14 @@ Jedes Modul in der Homefeed Response folgt einer einheitlichen Struktur:
 }
 ```
 
-Diese homogene Struktur macht das Frontend einfacher, da alle Module gleich verarbeitet werden können. Der Nachteil ist, dass auch Module die semantisch nur ein einzelnes Item liefern (wie das Greeting Modul) trotzdem ein Array zurückgeben müssen. In zukünftiger Entwicklung könnte dies noch angepasst werden.
+Die Struktur ist einheitlich für die Meta Daten eines Moduls (type, id und displayType), aber  jedes Modul  hat seinen eigenen payload in dem items array. 
+Der Nachteil ist, dass auch Module die semantisch nur ein einzelnes Item liefern (wie das Greeting Modul) trotzdem ein Array zurückgeben müssen. In zukünftiger Entwicklung könnte dies noch angepasst werden.
+Die `id` in den Meta Daten ermöglicht es dem Frontend jedes Module eindeutig zu identifizieren, der `displayType` gibt an wie die Einträge in dem items array dargestellt werden sollen 
 
 #### Type Safety mit Sealed Interfaces
 
-Für die Type Safety der verschiedenen Module nutzt die Applikation Sealed Interfaces. Wenn ein neues Modul hinzugefügt wird man gezwungen mapper zu erweitern, da die Applikation sonst nicht kompiliert. Eine Alternative wäre es `@JsonTypeInfo` oder `@JsonSubTypes` zu nutzen, aber die Komplexität der Applikation ist aktuell gering genug um sealed interfaces zu nutzen. Im Rahmen von einem Update der Response Strukturierung würde dies nochmal ausgewertet werden.
-Zusätzlich kann die Nutzung dieser Annotationen auch Fehler verstecken, da dies zur Compile Time nicht auffällt.
+Für die Type Safety der verschiedenen Module nutzt die Applikation Sealed Interfaces. Wenn ein neues Modul hinzugefügt wird, wird man gezwungen die mapper zu erweitern, da die Applikation sonst nicht kompiliert. Eine Alternative wäre es `@JsonTypeInfo` oder `@JsonSubTypes` zu nutzen, aber dadurch würde man die Compile Time Safety verlieren die Sealed Interfaces bieten.  
+Im Rahmen von einem Update der Response Strukturierung würden beide Wege noch einmal ausgewertet werden.
 
 #### Modul-Implementierungen
 
@@ -173,8 +175,8 @@ In den nächsten Schritten sollten die folgenden Dinge angegangen werden:
 
 Weitere Ideen:
 - API Versioning
-  - Da Apps seltener geupdated werden als ein Backend sollte man eine Strategie haben um nicht inkompatible Module an die App zurück zu schicken, dies kann über eine Version gemacht werden den die  App mitschickt. Diese Info wird dann im `UserContext` und kann von jedem Modul ausgewertet werden
-  - Für Changes die die gesamte Response ändern müsste ein neuer Endpunkt zu Verfügung gestellt werden
+  - Da Apps seltener geupdated werden als ein Backend, sollte man eine Strategie haben um nicht kompatible Module zu filtern. Dies kann über eine Version gemacht werden, die die  App mitschickt. Diese Info wird dann im `UserContext` abgelegt und kann von jedem Modul ausgewertet werden
+  - Änderungen die die Struktur der JSON Antwort ändern, müssten in einem neuen Endpoint zu Verfügung gestellt werden
 
 ## Deployment in einer Cloud Umgebung
 
@@ -187,13 +189,23 @@ AWS Core Infrastructure:
 - Application Load Balancer für Traffic Distribution mit Health Checks
 - CloudFront optional für Edge Caching von statischen Assets
 
-Kubernetes Setup:
-Im Deployment müssten Replicas über mehrere AZs verteilt werden mit entsprechenden Resource Limits für CPU und Memory. Für Auto Scaling würde ein HPA basierend auf CPU und Custom Metrics wie Request Rate zum Einsatz kommen. Configuration über ConfigMaps für Feature Flags und Timeouts, Secrets für DB Credentials über AWS Secrets Manager.
+### Kubernetes Setup
+- Replicas & Availability: Verteilung über mehrere AZs
+- Resource Management: CPU und Memory Limits/Requests
+- Auto Scaling: HPA basierend auf CPU und Custom Metrics (Request Rate)
+- Configuration: 
+  - ConfigMaps für Feature Flags und Timeouts
+  - Secrets über AWS Secrets Manager für DB Credentials
+- Health Checks: Readiness/Liveness Probes auf `/actuator/health`
+- Deployment Strategy: Rolling Updates für Zero Downtime
 
-Readiness/Liveness Probes würden auf `/actuator/health` zeigen und die Rolling Update Strategy auf Zero Downtime setzen.
+### Event Driven Updates
+- Message Broker: Kafka oder SQS/SNS für asynchrone Events
+- Cache Invalidierung: Events wie "BannerPublished" oder "UserPreferencesUpdated" invalidieren gezielt Cache Keys
+- Vorteil: Keine Abhängigkeit von TTL für kritische Updates
 
-Event Driven Updates:
-Für Cache Invalidierung würde ich auf Kafka oder SQS/SNS setzen. Events wie "BannerPublished" oder "UserPreferencesUpdated" könnten dann asynchron verarbeitet werden und gezielt Cache Keys invalidieren statt auf TTL zu warten.
-
-Monitoring:
-CloudWatch für basic Metrics, Prometheus + Grafana im Cluster für detaillierte Application Metrics. Tracing über X-Ray o.Ä. würde helfen Performance Bottlenecks zu identifizieren.
+### Monitoring & Observability
+- Basic Metrics:  CloudWatch für AWS Ressourcen
+- Application Metrics: Prometheus + Grafana im Cluster
+- Distributed Tracing: X-Ray oder ähnliches für Performance Bottleneck Analyse
+- Alerting: Auf Response Time, Error Rate, Cache Hit Rate
