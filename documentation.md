@@ -1,10 +1,15 @@
 # Homefeed Coding Challenge
 
 ## Das Projekt Starten
-
+Um das Projekt zu starten wird mindestens Java 21 benötigt.
 ```bash
 # Application läuft auf Port 8080
 ./gradlew bootRun
+```
+
+oder die  JAR nutzen:
+```bash
+java -jar homefeed.jar
 ```
 
 ### Beispiel Requests:
