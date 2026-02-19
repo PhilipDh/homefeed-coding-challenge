@@ -39,6 +39,12 @@ public class HomefeedService {
         this.configProperties = configProperties;
     }
 
+    /**
+     * @param userId public Id that identifies the user, can be empty or null indicating an anonymous user
+     * @return A list of data from each module that responded within the allowed time defined in  @HomefeedModuleConfigurationProperties
+     */
+    // TODO: Consider moving caching to module level with individual TTLs instead of caching entire response
+    // Current approach caches responses that may include timed-out modules
     @Cacheable(value = CacheConfiguration.HOMEFEED_CACHE, unless = "#result.isEmpty()", key = "#userId ?: 'anonymous'")
     public List<HomefeedModuleGroup> getHomefeed(String userId) {
         logger.info("Processing homefeed for user {}", StringUtils.isBlank(userId) ? "anonymous" : userId);
@@ -84,6 +90,7 @@ public class HomefeedService {
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
+        // Sort modules by their configured priority (lower value = higher priority)
         List<HomefeedModuleGroup> result = futures.stream()
                 .map(CompletableFuture::join)
                 .filter(group -> group != null && !group.entries().isEmpty())
