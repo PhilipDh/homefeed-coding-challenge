@@ -45,7 +45,7 @@ Die bewusste Trennung zwischen internen Service Objekten und API Response Objekt
 #### Service Layer
 Im Service Layer liegt die Kern Business Logik. Der zentrale `HomefeedService` orchestriert den Datenabruf über eine plugin basierte Architektur: Alle verfügbaren Module (Banner, Greeting, Highlight) implementieren das gemeinsame `HomefeedModule` Interface. Über Springs Dependency Injection werden automatisch alle Implementierungen erkannt und zur Laufzeit bereitgestellt.
 
-Ein kritischer Aspekt ist die Performance: Da der Homefeed zeitkritisch für das Frontend ist, werden alle Module parallel geladen. Das Laden der Module hat einen konfigurierbaren Timeout (250ms), um zu verhindern, dass langsame Module die gesamte Response verzögern. Module, die das Timeout überschreiten, werden aus der Response ausgeschlossen, und der User bekommt trotzdem einen funktionierenden Homefeed, nur mit weniger Content.
+Ein kritischer Aspekt ist die Performance: Da der Homefeed zeitkritisch für das Frontend ist, werden alle Module parallel geladen. Das Laden der Module hat einen konfigurierbaren Timeout (250ms), um zu verhindern, dass langsame Module die gesamte Response verzögern. Module, die den Timeout überschreiten, werden aus der Response ausgeschlossen, und der User bekommt trotzdem einen funktionierenden Homefeed, nur mit weniger Content.
 
 Die Module selbst befinden sich im `modules` Subpackage und enthalten die jeweilige Logik für ihren Content Type. Sie greifen auf Repositories zu, filtern und ranken Daten basierend auf User Präferenzen und bereiten sie für die Darstellung auf. 
 Der `HomefeedService` cached die finale Response pro User, um wiederholte Aufrufe zu beschleunigen. Es wird ein Caffeine cache genutzt, aber es ist einfach diesen durch einen Distributed Cache, wie Redis, auszutauschen. 
@@ -141,11 +141,11 @@ Im Rahmen von einem Update der Response Strukturierung würden beide Wege noch e
 
 Die drei implementierten Module wurden bewusst gewählt, um verschiedene Komplexitätsstufen abzudecken:
 
-**Greeting Modul**: Das einfachste Modul - keine Datenbankzugriffe, nur simple String Manipulation basierend auf der User-ID.
+Greeting Modul: Das einfachste Modul - keine Datenbankzugriffe, nur simple String Manipulation basierend auf der User-ID.
 
-**Banner Modul**: Mittlere Komplexität mit Repository Zugriff und einfacher Filterlogik. Banner werden basierend auf User Präferenzen (Interessen, Status) gefiltert. Demonstriert die Personalisierung anhand von User-Daten.
+Banner Modul: Mittlere Komplexität mit Repository Zugriff und einfacher Filterlogik. Banner werden basierend auf User Präferenzen (Interessen, Status) gefiltert. Demonstriert die Personalisierung anhand von User-Daten.
 
-**Highlight Modul**: Die komplexeste Implementierung mit ausgelagerter Ranking Logik im `HighlightRankingService`. Hier findet ein mehrstufiger Prozess statt: Daten laden, nach Relevanz ranken, und Top-N selektieren. Zeigt, wie Module eigene Sub-Services nutzen können.
+Highlight Modul: Die komplexeste Implementierung mit ausgelagerter Ranking Logik im `HighlightRankingService`. Hier findet ein mehrstufiger Prozess statt: Daten laden, nach Relevanz ranken, und Top-N selektieren. Zeigt, wie Module eigene Sub-Services nutzen können.
 
 #### Authentication & User Context
 
@@ -159,9 +159,9 @@ Der Endpunkt müsste natürlich Rate Limited sein, da keine Authentifizierung no
 
 #### Vereinfachungen für die Challenge
 
-**Entities & Datenmodell**: Um Entwicklungszeit zu sparen, wurden die Entities stark vereinfacht. Beziehungen zwischen Entitäten (1:n, n:n) sind als simple String Listen oder komma separierte Strings modelliert. In einer echten Anwendung müssten hier proper JPA Relations mit `@OneToMany`, `@ManyToMany` etc. verwendet werden.
+Entities & Datenmodell: Um Entwicklungszeit zu sparen, wurden die Entities stark vereinfacht. Beziehungen zwischen Entitäten (1:n, n:n) sind als simple String Listen oder komma separierte Strings modelliert. In einer echten Anwendung müssten hier proper JPA Relations mit `@OneToMany`, `@ManyToMany` etc. verwendet werden.
 
-**Caching Strategie**: Das aktuelle Caching findet auf Service Level statt; die gesamte Homefeed Response wird pro User gecached. Dies hat die folgenden Nachteile:
+Caching Strategie: Das aktuelle Caching findet auf Service Level statt; die gesamte Homefeed Response wird pro User gecached. Dies hat die folgenden Nachteile:
 - Wenn ein Modul in den Timeout läuft, wird die Response ohne dieses Modul gecached
 - Alle Module haben die gleiche TTL, obwohl manche Daten länger cacheable wären (z.B. Banner vs. personalisierte Highlights)
 
